@@ -14,7 +14,7 @@ function StudentViewCommonHeader() {
   return (
     <header className="flex items-center justify-between p-4 border-b relative">
       <div className="flex items-center space-x-4">
-        <Link to="/home" className="flex items-center hover:text-black">
+        <Link to="/home" className="flex items-center hover:text-green-500">
           <GraduationCap className="h-8 w-8 mr-4" />
           <span className="font-extrabold md:text-xl text-[14px]">
             SHIKCHYA
