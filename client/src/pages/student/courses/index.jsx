@@ -11,8 +11,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterOptions, sortOptions } from "@/config";
+import { AuthContext } from "@/context/auth-context";
 import { StudentContext } from "@/context/student-context";
-import { fetchStudentCourseListService } from "@/services";
+import {
+  checkCoursePurchaseInfoService,
+  fetchStudentViewCourseListService,
+} from "@/services";
 import { ArrowUpDownIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -32,16 +36,17 @@ function createSearchParamsHelper(filterParams) {
 }
 
 function StudentViewCoursesPage() {
-  const navigate = useNavigate();
   const [sort, setSort] = useState("price-lowtohigh");
   const [filters, setFilters] = useState({});
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     studentViewCoursesList,
     setStudentViewCoursesList,
-    loading,
-    setLoading,
+    loadingState,
+    setLoadingState,
   } = useContext(StudentContext);
+  const navigate = useNavigate();
+  const { auth } = useContext(AuthContext);
 
   function handleFilterOnChange(getSectionId, getCurrentOption) {
     let cpyFilters = { ...filters };
@@ -75,10 +80,25 @@ function StudentViewCoursesPage() {
       ...filters,
       sortBy: sort,
     });
-    const response = await fetchStudentCourseListService(query);
+    const response = await fetchStudentViewCourseListService(query);
     if (response?.success) {
       setStudentViewCoursesList(response?.data);
-      setLoading(false);
+      setLoadingState(false);
+    }
+  }
+
+  async function handleCourseNavigate(getCurrentCourseId) {
+    const response = await checkCoursePurchaseInfoService(
+      getCurrentCourseId,
+      auth?.user?._id
+    );
+
+    if (response?.success) {
+      if (response?.data) {
+        navigate(`/course-progress/${getCurrentCourseId}`);
+      } else {
+        navigate(`/course/details/${getCurrentCourseId}`);
+      }
     }
   }
 
@@ -103,7 +123,7 @@ function StudentViewCoursesPage() {
     };
   }, []);
 
-  console.log(loading, "loading");
+  console.log(loadingState, "loadingState");
 
   return (
     <div className="container mx-auto p-4">
@@ -112,14 +132,11 @@ function StudentViewCoursesPage() {
         <aside className="w-full md:w-64 space-y-4">
           <div>
             {Object.keys(filterOptions).map((ketItem) => (
-              <div className="p-4 border-b" key={ketItem}>
+              <div className="p-4 border-b">
                 <h3 className="font-bold mb-3">{ketItem.toUpperCase()}</h3>
                 <div className="grid gap-2 mt-2">
                   {filterOptions[ketItem].map((option) => (
-                    <Label
-                      className="flex font-medium items-center gap-3"
-                      key={option.id}
-                    >
+                    <Label className="flex font-medium items-center gap-3">
                       <Checkbox
                         checked={
                           filters &&
@@ -176,9 +193,7 @@ function StudentViewCoursesPage() {
             {studentViewCoursesList && studentViewCoursesList.length > 0 ? (
               studentViewCoursesList.map((courseItem) => (
                 <Card
-                  onClick={() =>
-                    navigate(`/courses/details/${courseItem?._id}`)
-                  }
+                  onClick={() => handleCourseNavigate(courseItem?._id)}
                   className="cursor-pointer"
                   key={courseItem?._id}
                 >
@@ -207,13 +222,13 @@ function StudentViewCoursesPage() {
                         } - ${courseItem?.level.toUpperCase()} Level`}
                       </p>
                       <p className="font-bold text-lg">
-                        ${courseItem?.pricing}
+                        Rs{courseItem?.pricing}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
               ))
-            ) : loading ? (
+            ) : loadingState ? (
               <Skeleton />
             ) : (
               <h1 className="font-extrabold text-4xl">No Courses Found</h1>

@@ -5,6 +5,7 @@ import {
 import { createContext, useState } from "react";
 
 export const InstructorContext = createContext(null);
+
 export default function InstructorProvider({ children }) {
   const [courseLandingFormData, setCourseLandingFormData] = useState(
     courseLandingInitialFormData
@@ -13,7 +14,7 @@ export default function InstructorProvider({ children }) {
     courseCurriculumInitialFormData
   );
   const [mediaUploadProgress, setMediaUploadProgress] = useState(false);
-  const [mediauploadProgressPercentage, setMediauploadProgressPercentage] =
+  const [mediaUploadProgressPercentage, setMediaUploadProgressPercentage] =
     useState(0);
   const [instructorCoursesList, setInstructorCoursesList] = useState([]);
   const [currentEditedCourseId, setCurrentEditedCourseId] = useState(null);
@@ -27,8 +28,8 @@ export default function InstructorProvider({ children }) {
         setCourseCurriculumFormData,
         mediaUploadProgress,
         setMediaUploadProgress,
-        mediauploadProgressPercentage,
-        setMediauploadProgressPercentage,
+        mediaUploadProgressPercentage,
+        setMediaUploadProgressPercentage,
         instructorCoursesList,
         setInstructorCoursesList,
         currentEditedCourseId,

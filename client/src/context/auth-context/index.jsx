@@ -2,26 +2,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { initialSignInFormData, initialSignUpFormData } from "@/config";
 import { checkAuthService, loginService, registerService } from "@/services";
 import { createContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
   const [signInFormData, setSignInFormData] = useState(initialSignInFormData);
   const [signUpFormData, setSignUpFormData] = useState(initialSignUpFormData);
-
   const [auth, setAuth] = useState({
     authenticate: false,
     user: null,
   });
   const [loading, setLoading] = useState(true);
-  async function handleRegisterUser(e) {
-    e.preventDefault();
+
+  async function handleRegisterUser(event) {
+    event.preventDefault();
     const data = await registerService(signUpFormData);
-    return data;
+    console.log(data, "datadatadatadatadata");
+    alert("User registered successfully!");
+    if (data.success) {
+    
+      toast.success(data.message);
+    } else if (data.success===false) {
+      
+      toast.error(data.message)
+    }
   }
+
   async function handleLoginUser(event) {
     event.preventDefault();
     const data = await loginService(signInFormData);
+    console.log(data, "datadatadatadatadata");
 
     if (data.success) {
       sessionStorage.setItem(
@@ -32,13 +43,17 @@ export default function AuthProvider({ children }) {
         authenticate: true,
         user: data.data.user,
       });
+      toast.success(data.message)
     } else {
       setAuth({
         authenticate: false,
         user: null,
       });
+      toast.error(data.message)
     }
   }
+
+  //check auth user
 
   async function checkAuthUser() {
     try {
@@ -70,16 +85,16 @@ export default function AuthProvider({ children }) {
 
   function resetCredentials() {
     setAuth({
-      authenticate: null,
+      authenticate: false,
       user: null,
     });
   }
 
-  console.log(loading, "loading");
   useEffect(() => {
     checkAuthUser();
   }, []);
-  console.log(auth, "auth");
+
+
   return (
     <AuthContext.Provider
       value={{

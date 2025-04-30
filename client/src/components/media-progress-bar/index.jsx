@@ -8,7 +8,6 @@ function MediaProgressbar({ isMediaUploading, progress }) {
   useEffect(() => {
     if (isMediaUploading) {
       setShowProgress(true);
-      // Smoothly animate the progress whenever `progress` changes
       setAnimatedProgress(progress);
     } else {
       const timer = setTimeout(() => {
@@ -28,8 +27,8 @@ function MediaProgressbar({ isMediaUploading, progress }) {
         initial={{ width: 0 }}
         animate={{
           width: `${animatedProgress}%`,
+          transition: { duration: 0.5, ease: "easeInOut" },
         }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
       >
         {progress >= 100 && isMediaUploading && (
           <motion.div

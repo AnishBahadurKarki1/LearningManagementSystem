@@ -14,12 +14,33 @@ export const signUpFormControls = [
     componentType: "input",
   },
   {
+    name: "phoneNumber",
+    label: "Phone Number",
+    placeholder: "Enter your user number",
+    type: "text",
+    componentType: "input",
+  },
+  {
     name: "password",
     label: "Password",
     placeholder: "Enter your password",
     type: "password",
     componentType: "input",
   },
+  {
+    name: "role",
+    label: "Role",
+    type: "select",
+    componentType: "select",
+    options: [
+      { label: "Student", id: "student" },
+      { label: "Instructor", id: "instructor" },
+      { label: "Admin", id: "admin" },
+      // Add more roles if needed
+    ],
+    placeholder: "Select your role",
+    required: true,
+  }
 ];
 
 export const signInFormControls = [
@@ -43,11 +64,15 @@ export const initialSignInFormData = {
   userEmail: "",
   password: "",
 };
+
 export const initialSignUpFormData = {
   userName: "",
   userEmail: "",
   password: "",
+  role: "",
+  phoneNumber: "",
 };
+
 export const languageOptions = [
   { id: "english", label: "English" },
   { id: "spanish", label: "Spanish" },

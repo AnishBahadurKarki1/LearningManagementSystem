@@ -1,12 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import VideoPlayer from "@/components/video-player";
-import { StudentContext } from "@/context/student-context";
-import { fetchStudentCourseDetailsService } from "@/services";
-import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
 import {
   Dialog,
   DialogClose,
@@ -15,19 +8,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import VideoPlayer from "@/components/video-player";
+import { AuthContext } from "@/context/auth-context";
+import { StudentContext } from "@/context/student-context";
+import {
+  checkCoursePurchaseInfoService,
+  createPaymentService,
+  fetchStudentViewCourseDetailsService,
+} from "@/services";
+import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-function StudentViewCoursesDetailsPage() {
+function StudentViewCourseDetailsPage() {
   const {
-    loading,
-    setLoading,
     studentViewCourseDetails,
     setStudentViewCourseDetails,
-    currentCourseDetailsID,
-    setCurrentCourseDetailsID,
+    currentCourseDetailsId,
+    setCurrentCourseDetailsId,
+    loadingState,
+    setLoadingState,
   } = useContext(StudentContext);
-  const [displayCurrentFreePreview, setDisplayCurrentFreePreview] =
+
+  const { auth } = useContext(AuthContext);
+
+  const [displayCurrentVideoFreePreview, setDisplayCurrentVideoFreePreview] =
     useState(null);
   const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
+  const [approvalUrl, setApprovalUrl] = useState("");
+  const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
 
@@ -46,41 +56,79 @@ function StudentViewCoursesDetailsPage() {
     //   return;
     // }
 
-    const response = await fetchStudentCourseDetailsService(
-      currentCourseDetailsID
+    const response = await fetchStudentViewCourseDetailsService(
+      currentCourseDetailsId
     );
-    console.log("response", response);
 
     if (response?.success) {
       setStudentViewCourseDetails(response?.data);
-      setLoading(false);
+      setLoadingState(false);
     } else {
       setStudentViewCourseDetails(null);
-      setLoading(false);
+      setLoadingState(false);
     }
   }
+
   function handleSetFreePreview(getCurrentVideoInfo) {
     console.log(getCurrentVideoInfo);
-    setDisplayCurrentFreePreview(getCurrentVideoInfo?.videoUrl);
+    setDisplayCurrentVideoFreePreview(getCurrentVideoInfo?.videoUrl);
+  }
+
+  async function handleCreatePayment() {
+    const paymentPayload = {
+      userId: auth?.user?._id,
+      userName: auth?.user?.userName,
+      userEmail: auth?.user?.userEmail,
+      orderStatus: "pending",
+      paymentMethod: "paypal",
+      paymentStatus: "initiated",
+      orderDate: new Date(),
+      paymentId: "",
+      payerId: "",
+      instructorId: studentViewCourseDetails?.instructorId,
+      instructorName: studentViewCourseDetails?.instructorName,
+      courseImage: studentViewCourseDetails?.image,
+      courseTitle: studentViewCourseDetails?.title,
+      courseId: studentViewCourseDetails?._id,
+      coursePricing: studentViewCourseDetails?.pricing,
+    };
+
+    console.log(paymentPayload, "paymentPayload");
+    const response = await createPaymentService(paymentPayload);
+
+    if (response.success) {
+      sessionStorage.setItem(
+        "currentOrderId",
+        JSON.stringify(response?.data?.orderId)
+      );
+      setApprovalUrl(response?.data?.approveUrl);
+    }
   }
 
   useEffect(() => {
-    if (displayCurrentFreePreview !== null) setShowFreePreviewDialog(true);
-  }, [displayCurrentFreePreview]);
+    if (displayCurrentVideoFreePreview !== null) setShowFreePreviewDialog(true);
+  }, [displayCurrentVideoFreePreview]);
 
   useEffect(() => {
-    if (currentCourseDetailsID !== null)
-      fetchStudentViewCourseDetails(currentCourseDetailsID);
-  }, [currentCourseDetailsID]);
+    if (currentCourseDetailsId !== null) fetchStudentViewCourseDetails();
+  }, [currentCourseDetailsId]);
 
   useEffect(() => {
-    if (id) setCurrentCourseDetailsID(id);
+    if (id) setCurrentCourseDetailsId(id);
   }, [id]);
 
-  // useEffect(() => {
-  //   if (!location.pathname.includes("course/details"))
-  //     setStudentViewCourseDetails(null), setCurrentCourseDetailsID(null);
-  // }, [location.pathname]);
+  useEffect(() => {
+    if (!location.pathname.includes("course/details"))
+      setStudentViewCourseDetails(null),
+        setCurrentCourseDetailsId(null),
+        setCoursePurchaseId(null);
+  }, [location.pathname]);
+
+  if (loadingState) return <Skeleton />;
+
+  if (approvalUrl !== "") {
+    window.location.href = approvalUrl;
+  }
 
   const getIndexOfFreePreviewUrl =
     studentViewCourseDetails !== null
@@ -89,9 +137,8 @@ function StudentViewCoursesDetailsPage() {
         )
       : -1;
 
-  if (loading) return <Skeleton />;
   return (
-    <div className="container mx-auto p-4 ">
+    <div className=" mx-auto p-4">
       <div className="bg-gray-900 text-white p-8 rounded-t-lg">
         <h1 className="text-3xl font-bold mb-4">
           {studentViewCourseDetails?.title}
@@ -116,7 +163,7 @@ function StudentViewCoursesDetailsPage() {
         <main className="flex-grow">
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>What you will learn</CardTitle>
+              <CardTitle>What you'll learn</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -145,7 +192,6 @@ function StudentViewCoursesDetailsPage() {
               {studentViewCourseDetails?.curriculum?.map(
                 (curriculumItem, index) => (
                   <li
-                    key={index}
                     className={`${
                       curriculumItem?.freePreview
                         ? "cursor-pointer"
@@ -187,10 +233,10 @@ function StudentViewCoursesDetailsPage() {
               </div>
               <div className="mb-4">
                 <span className="text-3xl font-bold">
-                  ${studentViewCourseDetails?.pricing}
+                  Rs{studentViewCourseDetails?.pricing}
                 </span>
               </div>
-              <Button /*onClick={handleCreatePayment}*/ className="w-full">
+              <Button onClick={handleCreatePayment} className="w-full">
                 Buy Now
               </Button>
             </CardContent>
@@ -201,7 +247,7 @@ function StudentViewCoursesDetailsPage() {
         open={showFreePreviewDialog}
         onOpenChange={() => {
           setShowFreePreviewDialog(false);
-          setDisplayCurrentFreePreview(null);
+          setDisplayCurrentVideoFreePreview(null);
         }}
       >
         <DialogContent className="w-[800px]">
@@ -210,7 +256,7 @@ function StudentViewCoursesDetailsPage() {
           </DialogHeader>
           <div className="aspect-video rounded-lg flex items-center justify-center">
             <VideoPlayer
-              url={displayCurrentFreePreview}
+              url={displayCurrentVideoFreePreview}
               width="450px"
               height="200px"
             />
@@ -220,8 +266,7 @@ function StudentViewCoursesDetailsPage() {
               ?.filter((item) => item.freePreview)
               .map((filteredItem) => (
                 <p
-                  key={filteredItem?.id}
-                  // onClick={() => handleSetFreePreview(filteredItem)}
+                  onClick={() => handleSetFreePreview(filteredItem)}
                   className="cursor-pointer text-[16px] font-medium"
                 >
                   {filteredItem?.title}
@@ -241,4 +286,4 @@ function StudentViewCoursesDetailsPage() {
   );
 }
 
-export default StudentViewCoursesDetailsPage;
+export default StudentViewCourseDetailsPage;

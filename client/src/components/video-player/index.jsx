@@ -1,6 +1,6 @@
-import { Slider } from "../ui/slider";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
+import { Slider } from "../ui/slider";
 import { Button } from "../ui/button";
 import {
   Maximize,
@@ -13,7 +13,13 @@ import {
   VolumeX,
 } from "lucide-react";
 
-function VideoPlayer({ width = "100%", height = "100%", url }) {
+function VideoPlayer({
+  width = "100%",
+  height = "100%",
+  url,
+  onProgressUpdate,
+  progressData,
+}) {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [muted, setMuted] = useState(false);
@@ -29,34 +35,43 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
   function handlePlayAndPause() {
     setPlaying(!playing);
   }
+
   function handleProgress(state) {
     if (!seeking) {
       setPlayed(state.played);
     }
   }
+
   function handleRewind() {
     playerRef?.current?.seekTo(playerRef?.current?.getCurrentTime() - 5);
   }
+
   function handleForward() {
     playerRef?.current?.seekTo(playerRef?.current?.getCurrentTime() + 5);
   }
+
   function handleToggleMute() {
     setMuted(!muted);
   }
+
   function handleSeekChange(newValue) {
-    setPlayed(newValue);
+    setPlayed(newValue[0]);
     setSeeking(true);
   }
+
   function handleSeekMouseUp() {
     setSeeking(false);
     playerRef.current?.seekTo(played);
   }
-  function handleVolumeChange(value) {
-    setVolume(value);
+
+  function handleVolumeChange(newValue) {
+    setVolume(newValue[0]);
   }
+
   function pad(string) {
     return ("0" + string).slice(-2);
   }
+
   function formatTime(seconds) {
     const date = new Date(seconds * 1000);
     const hh = date.getUTCHours();
@@ -69,6 +84,7 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
 
     return `${mm}:${ss}`;
   }
+
   const handleFullScreen = useCallback(() => {
     if (!isFullScreen) {
       if (playerContainerRef?.current.requestFullscreen) {
@@ -80,20 +96,33 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
       }
     }
   }, [isFullScreen]);
+
   function handleMouseMove() {
     setShowControls(true);
     clearTimeout(controlsTimeoutRef.current);
     controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
   }
+
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(document.fullscreenElement);
     };
+
     document.addEventListener("fullscreenchange", handleFullScreenChange);
+
     return () => {
       document.removeEventListener("fullscreenchange", handleFullScreenChange);
     };
-  });
+  }, []);
+
+  useEffect(() => {
+    if (played === 1) {
+      onProgressUpdate({
+        ...progressData,
+        progressValue: played,
+      });
+    }
+  }, [played]);
 
   return (
     <div
@@ -177,12 +206,12 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
                 max={100}
                 step={1}
                 onValueChange={(value) => handleVolumeChange([value[0] / 100])}
-                className="w-24"
+                className="w-24 "
               />
             </div>
-            <div className="flex items-center justify-center">
-              <div className=" text-white">
-                {formatTime(played * playerRef?.current?.getDuration() || 0)}/
+            <div className="flex items-center space-x-2">
+              <div className="text-white">
+                {formatTime(played * (playerRef?.current?.getDuration() || 0))}/{" "}
                 {formatTime(playerRef?.current?.getDuration() || 0)}
               </div>
               <Button
