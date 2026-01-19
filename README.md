@@ -7,17 +7,13 @@ The platform supports user authentication, role-based access, and dynamic course
 
 This project is built as a **full-stack web application** using **React for the frontend** and a **separate backend server** to handle data, authentication, and business logic.
 
----
-
 ## 🎯 Objectives
 
 * Provide a user-friendly platform for online learning
 * Allow users to purchase and access courses securely
 * Implement role-based authentication (Student / Instructor)
 * Practice full-stack development with modern technologies
-
----
-
+  
 ## ✨ Key Features
 
 * User authentication (Login & Signup)
@@ -29,8 +25,6 @@ This project is built as a **full-stack web application** using **React for the 
 * Filters and sorting for course listings
 * Secure access to purchased courses only
 * Responsive and clean UI
-
----
 
 ## 🧠 User Roles
 
@@ -46,8 +40,6 @@ This project is built as a **full-stack web application** using **React for the 
 
 * Create and manage courses
 * Upload course content
-
----
 
 ## 🛠️ Technologies Used
 
@@ -75,8 +67,6 @@ This project is built as a **full-stack web application** using **React for the 
 * JWT (Authentication)
 * Git & GitHub (Version Control)
 
----
-
 ## 🔄 Project Workflow
 
 1. **User Registration & Login**
@@ -97,11 +87,6 @@ This project is built as a **full-stack web application** using **React for the 
 5. **Learning Access**
    Students can read and learn from purchased courses only.
 
----
-
-
----
-
 ## 📊 Future Enhancements
 
 * Payment gateway integration
@@ -111,18 +96,12 @@ This project is built as a **full-stack web application** using **React for the 
 * Admin panel
 * Mobile responsiveness improvements
 
----
-
 ## 📌 Conclusion
 
 **Shikchya** demonstrates a complete full-stack LMS solution with real-world features such as authentication, role-based access, and course purchasing.
 It reflects practical experience in **React**, **backend APIs**, and **application architecture**.
 
----
-
 ## 👨‍💻 Author
 
 **Anish Karki**
 BSc Computer Science
-
-
